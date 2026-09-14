@@ -43,16 +43,18 @@ auto Shader::GetUniformLocation(const char* name) const -> GLint
 void Shader::CompileProgram(const std::string& vertexShaderSource,
                             const std::string& fragmentShaderSource)
 {
-    GLuint vertexShader = CompileShader(vertexShaderSource, GL_VERTEX_SHADER);
+    GLuint vertexShader = 0;
     GLuint fragmentShader = 0;
 
     try
     {
+        vertexShader = CompileShader(vertexShaderSource, GL_VERTEX_SHADER);
         fragmentShader = CompileShader(fragmentShaderSource, GL_FRAGMENT_SHADER);
     }
     catch (...)
     {
-        glDeleteShader(vertexShader);
+        if (vertexShader) glDeleteShader(vertexShader);
+        if (fragmentShader) glDeleteShader(fragmentShader);
         throw;
     }
 

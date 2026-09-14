@@ -52,6 +52,10 @@ void Loudness::UpdateBandAverage(double secondsSinceLastFrame, uint32_t frame)
 
 auto Loudness::AdjustRateToFps(float rate, double secondsSinceLastFrame) -> float
 {
+    // Clamp the delta to avoid instability at extreme framerates.
+    if (secondsSinceLastFrame < 0.001) secondsSinceLastFrame = 0.001; // max 1000 FPS cap for math
+    if (secondsSinceLastFrame > 1.0) secondsSinceLastFrame = 1.0;   // min 1 FPS cap
+
     float const perSecondDecayRateAtFps1 = std::pow(rate, 30.0f);
     float const perFrameDecayRateAtFps2 = std::pow(perSecondDecayRateAtFps1, static_cast<float>(secondsSinceLastFrame));
 

@@ -89,7 +89,7 @@ private:
      */
     void CopyNewWaveformData(const WaveformBuffer& source, WaveformBuffer& destination);
 
-    std::mutex m_pcmMutex; //!< Protects the circular input buffer from concurrent access.
+    mutable std::mutex m_pcmMutex; //!< Protects the circular input buffer from concurrent access.
 
     // External input buffer
     WaveformBuffer m_inputBufferL{0.f}; //!< Circular buffer for left-channel PCM data.

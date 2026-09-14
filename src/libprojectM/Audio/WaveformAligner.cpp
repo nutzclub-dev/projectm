@@ -145,7 +145,10 @@ int WaveformAligner::CalculateOffset(std::vector<WaveformBuffer>& newWaveformMip
             // one because we're looking for the offset between them that produces the lowest error.
             for (uint32_t i = m_firstNonzeroWeights[octave]; i <= m_lastNonzeroWeights[octave]; i++)
             {
-                errorSum += std::abs((newWaveformMips[octave][i + sample] - m_oldWaveformMips[octave][i]) * m_aligmentWeights[octave][i]);
+                if (i + sample < newWaveformMips[octave].size() && i < m_oldWaveformMips[octave].size())
+                {
+                    errorSum += std::abs((newWaveformMips[octave][i + sample] - m_oldWaveformMips[octave][i]) * m_aligmentWeights[octave][i]);
+                }
             }
 
             if (lowestErrorOffset == -1 || errorSum < lowestErrorAmount)
