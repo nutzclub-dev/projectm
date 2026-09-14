@@ -106,17 +106,30 @@ void TextureAttachment::ReplaceTexture(int width, int height)
 
     m_texture.reset();
 
-    GLuint textureId;
-    glGenTextures(1, &textureId);
-    glBindTexture(GL_TEXTURE_2D, textureId);
-    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, textureFormat, pixelFormat, nullptr);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    glBindTexture(GL_TEXTURE_2D, 0);
+    GLuint textureId{0};
+    if (glGenTextures != nullptr)
+    {
+        glGenTextures(1, &textureId);
+    }
+    if (glBindTexture != nullptr)
+    {
+        glBindTexture(GL_TEXTURE_2D, textureId);
+    }
+    if (glTexImage2D != nullptr)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, textureFormat, pixelFormat, nullptr);
+    }
+    if (glTexParameteri != nullptr)
+    {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    }
+    if (glBindTexture != nullptr)
+    {
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
 
     m_texture = std::make_shared<class Texture>("", textureId, GL_TEXTURE_2D, width, height, false);
 }

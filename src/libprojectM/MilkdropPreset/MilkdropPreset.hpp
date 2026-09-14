@@ -23,6 +23,7 @@
  */
 #pragma once
 
+#include "PresetState.hpp"
 #include "Border.hpp"
 #include "CustomShape.hpp"
 #include "CustomWaveform.hpp"
@@ -86,6 +87,8 @@ public:
 
     void BindFramebuffer() override;
 
+    bool IsAudioReactive() const override;
+
 private:
     void PerFrameUpdate();
 
@@ -129,6 +132,7 @@ private:
     FinalComposite m_finalComposite; //!< Final composite shader or filters.
 
     bool m_isFirstFrame{true}; //!< Controls drawing the motion vectors starting with the second frame.
+    float m_fallbackAudioEnergy{1.0f}; //!< Exponentially smoothed audio signal for fallback reactivity.
 };
 
 } // namespace MilkdropPreset

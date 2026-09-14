@@ -1,0 +1,10 @@
+[preset00]
+fDecay=0.980000
+fWarpScale=2.853000
+fZoomExponent=1.000000
+warp=0.000000
+sx=1.000000
+sy=1.000000
+
+per_frame_1=counter = counter + 1;
+per_frame_2=while(time > 20.0);

@@ -171,23 +171,29 @@ void ProjectM::RenderFrame(uint32_t targetFramebufferObject /*= 0*/)
 
     auto renderContext = GetRenderContext();
 
-    if (m_transition != nullptr && m_transitioningPreset != nullptr)
+    try
     {
-        if (m_transition->IsDone(m_timeKeeper->GetFrameTime()))
+        if (m_transition != nullptr && m_transitioningPreset != nullptr)
         {
-            m_activePreset = std::move(m_transitioningPreset);
-            m_transitioningPreset.reset();
-            m_transition.reset();
+            if (m_transition->IsDone(m_timeKeeper->GetFrameTime()))
+            {
+                m_activePreset = std::move(m_transitioningPreset);
+                m_transitioningPreset.reset();
+                m_transition.reset();
+            }
+            else
+            {
+                m_transitioningPreset->RenderFrame(audioData, renderContext);
+            }
         }
-        else
-        {
-            m_transitioningPreset->RenderFrame(audioData, renderContext);
-        }
+
+        m_activePreset->RenderFrame(audioData, renderContext);
     }
-
-
-    // ToDo: Call the to-be-implemented render method in Renderer
-    m_activePreset->RenderFrame(audioData, renderContext);
+    catch (const std::exception& ex)
+    {
+        LOG_ERROR("[ProjectM] Active preset rendering exception: " + std::string(ex.what()));
+        LoadIdlePreset();
+    }
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, static_cast<GLuint>(targetFramebufferObject));
     glViewport(0, 0, renderContext.viewportSizeX, renderContext.viewportSizeY);
@@ -508,6 +514,26 @@ void ProjectM::SetAspectCorrection(bool enabled)
     m_aspectCorrection = enabled;
 }
 
+void ProjectM::SetFallbackAudioReactivityEnabled(bool enabled)
+{
+    m_fallbackAudioReactivityEnabled = enabled;
+}
+
+auto ProjectM::FallbackAudioReactivityEnabled() const -> bool
+{
+    return m_fallbackAudioReactivityEnabled;
+}
+
+void ProjectM::SetFallbackAudioReactivityStrength(float strength)
+{
+    m_fallbackAudioReactivityStrength = std::max(0.0f, std::min(2.0f, strength));
+}
+
+auto ProjectM::FallbackAudioReactivityStrength() const -> float
+{
+    return m_fallbackAudioReactivityStrength;
+}
+
 auto ProjectM::EasterEgg() const -> float
 {
     return m_easterEgg;
@@ -602,6 +628,9 @@ auto ProjectM::GetRenderContext() -> Renderer::RenderContext
 
     ctx.texelOffsetX = m_texelOffsetX;
     ctx.texelOffsetY = m_texelOffsetY;
+
+    ctx.fallbackAudioReactivityEnabled = m_fallbackAudioReactivityEnabled;
+    ctx.fallbackAudioReactivityStrength = m_fallbackAudioReactivityStrength;
 
     ctx.textureManager = m_textureManager.get();
     ctx.shaderCache = m_shaderCache.get();

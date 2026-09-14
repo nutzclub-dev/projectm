@@ -182,6 +182,14 @@ public:
 
     void SetAspectCorrection(bool enabled);
 
+    void SetFallbackAudioReactivityEnabled(bool enabled);
+
+    auto FallbackAudioReactivityEnabled() const -> bool;
+
+    void SetFallbackAudioReactivityStrength(float strength);
+
+    auto FallbackAudioReactivityStrength() const -> float;
+
     auto EasterEgg() const -> float;
 
     void SetEasterEgg(float value);
@@ -330,6 +338,9 @@ private:
 
     /** Timing information */
     int m_frameCount{0}; //!< Rendered frame count since start
+
+    bool m_fallbackAudioReactivityEnabled{true}; //!< Controls subtle fallback audio reactivity layer.
+    float m_fallbackAudioReactivityStrength{1.0f}; //!< Fallback audio reactivity strength factor.
 
     bool m_presetLocked{false};         //!< If true, the preset change event will not be sent.
     bool m_presetChangeNotified{false}; //!< Stores whether the user has been notified that projectM wants to switch the preset.

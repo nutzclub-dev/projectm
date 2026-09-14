@@ -44,7 +44,10 @@ void Framebuffer::Bind(int framebufferIndex)
         return;
     }
 
-    glBindFramebuffer(GL_FRAMEBUFFER, m_framebufferIds.at(framebufferIndex));
+    if (glBindFramebuffer != nullptr)
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, m_framebufferIds.at(framebufferIndex));
+    }
 
     m_readFramebuffer = m_drawFramebuffer = framebufferIndex;
 }
@@ -56,7 +59,10 @@ void Framebuffer::BindRead(int framebufferIndex)
         return;
     }
 
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, m_framebufferIds.at(framebufferIndex));
+    if (glBindFramebuffer != nullptr)
+    {
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, m_framebufferIds.at(framebufferIndex));
+    }
 
     m_readFramebuffer = framebufferIndex;
 }
@@ -68,14 +74,20 @@ void Framebuffer::BindDraw(int framebufferIndex)
         return;
     }
 
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_framebufferIds.at(framebufferIndex));
+    if (glBindFramebuffer != nullptr)
+    {
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_framebufferIds.at(framebufferIndex));
+    }
 
     m_drawFramebuffer = framebufferIndex;
 }
 
 void Framebuffer::Unbind()
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    if (glBindFramebuffer != nullptr)
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
 }
 
 bool Framebuffer::SetSize(int width, int height)
@@ -379,7 +391,10 @@ void Framebuffer::UpdateDrawBuffers(int framebufferIndex)
         buffers.push_back(GL_DEPTH_STENCIL_ATTACHMENT);
     }
 
-    glDrawBuffers(static_cast<GLsizei>(buffers.size()), buffers.data());
+    if (glDrawBuffers != nullptr)
+    {
+        glDrawBuffers(static_cast<GLsizei>(buffers.size()), buffers.data());
+    }
 }
 
 void Framebuffer::RemoveAttachment(int framebufferIndex, GLenum attachmentType)

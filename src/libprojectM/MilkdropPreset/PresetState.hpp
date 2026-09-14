@@ -51,6 +51,12 @@ public:
      */
     void LoadShaders();
 
+    /**
+     * @brief Determines whether the preset uses audio-driven variables, waveforms, or equations.
+     * @return True if the preset is already audio-reactive, false otherwise.
+     */
+    bool IsAudioReactive(PresetFileParser* parser = nullptr) const;
+
     BlendableFloat gammaAdj{2.0f};
     BlendableFloat videoEchoZoom{2.0f};
     BlendableFloat videoEchoAlpha{0.0f};
