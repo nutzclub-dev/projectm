@@ -21,7 +21,7 @@ jobs:
         include:
           - libs: static
             fslib: stl
-            emsdk-version: 3.1.53
+            emsdk-version: 3.1.73
             runs-on: ubuntu-24.04
 
     steps:
