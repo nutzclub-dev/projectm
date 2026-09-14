@@ -166,6 +166,52 @@ jobs:
           cmake --build "${{ github.workspace }}/cmake-build-cxx-api" --config "Debug"
           cmake --build "${{ github.workspace }}/cmake-build-cxx-api" --config "Release"
 
+      - name: Verify DLL and LIB existence and PE architecture
+        shell: pwsh
+        run: |
+          if ("${{ matrix.libs }}" -eq "shared") {
+            $dllFile = Get-ChildItem -Path "${{ github.workspace }}" -Recurse -Filter "projectM-4.dll" | Select-Object -First 1
+            $libFile = Get-ChildItem -Path "${{ github.workspace }}" -Recurse -Filter "projectM-4.lib" | Select-Object -First 1
+
+            if (-not $dllFile) {
+              Write-Error "CRITICAL FAILURE: projectM-4.dll was not found after build!"
+              exit 1
+            }
+            if (-not $libFile) {
+              Write-Error "CRITICAL FAILURE: projectM-4.lib was not found after build!"
+              exit 1
+            }
+
+            $dllPath = $dllFile.FullName
+            $libPath = $libFile.FullName
+
+            Write-Host "Found DLL: $dllPath"
+            Write-Host "Found LIB: $libPath"
+
+            # Inspect PE machine header
+            $bytes = [System.IO.File]::ReadAllBytes($dllPath)
+            $peOffset = [System.BitConverter]::ToInt32($bytes, 0x3C)
+            $machine = [System.BitConverter]::ToUInt16($bytes, $peOffset + 4)
+
+            Write-Host ("PE Machine Type: 0x{0:X4}" -f $machine)
+
+            if ("${{ matrix.arch }}" -eq "X64") {
+              if ($machine -ne 0x8664) {
+                Write-Error ("CRITICAL FAILURE: Expected x64 (0x8664 / IMAGE_FILE_MACHINE_AMD64) but found 0x{0:X4}" -f $machine)
+                exit 1
+              }
+              Write-Host "DLL architecture successfully verified: x64 (IMAGE_FILE_MACHINE_AMD64 / 0x8664)"
+            } else {
+              if ($machine -ne 0x014C) {
+                Write-Error ("CRITICAL FAILURE: Expected x86 (0x014C / IMAGE_FILE_MACHINE_I386) but found 0x{0:X4}" -f $machine)
+                exit 1
+              }
+              Write-Host "DLL architecture successfully verified: x86 (IMAGE_FILE_MACHINE_I386 / 0x014C)"
+            }
+          } else {
+            Write-Host "Static build matrix entry - skipping shared DLL verification."
+          }
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v7
         with:
