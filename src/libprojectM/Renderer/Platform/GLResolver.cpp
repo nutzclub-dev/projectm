@@ -369,8 +369,6 @@ auto GLResolver::Initialize(UserResolver resolver, void* userData) -> bool
     state.m_userResolver = resolver;
     state.m_userData = userData;
 
-    lock.unlock();
-
 #ifndef __EMSCRIPTEN__
 
     // Find source for gl functions. Emscripten does not have libs.
@@ -396,8 +394,6 @@ auto GLResolver::Initialize(UserResolver resolver, void* userData) -> bool
                  " cgl_available=\"" + (currentContext.cglAvailable ? "yes" : "no") + "\"" +
                  " webgl_available=\"" + (currentContext.webglAvailable ? "yes" : "no") + "\"");
     }
-
-    lock.lock();
 
     // Precondition: caller must have a current context on this thread.
     {

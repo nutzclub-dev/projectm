@@ -51,12 +51,11 @@ void PCM::Add(int16_t const* const samples, uint32_t channels, size_t const coun
 
 void PCM::UpdateFrameAudioData(double secondsSinceLastFrame, uint32_t frame)
 {
+    std::lock_guard<std::mutex> lock(m_pcmMutex);
+
     // 1. Copy audio data from input buffer (lock to prevent tearing with audio thread writes)
-    {
-        std::lock_guard<std::mutex> lock(m_pcmMutex);
-        CopyNewWaveformData(m_inputBufferL, m_waveformL);
-        CopyNewWaveformData(m_inputBufferR, m_waveformR);
-    }
+    CopyNewWaveformData(m_inputBufferL, m_waveformL);
+    CopyNewWaveformData(m_inputBufferR, m_waveformR);
 
     // 2. Update spectrum analyzer data for both channels
     UpdateSpectrum(m_waveformL, m_spectrumL);
@@ -82,6 +81,7 @@ void PCM::UpdateFrameAudioData(double secondsSinceLastFrame, uint32_t frame)
 
 auto PCM::GetFrameAudioData() const -> FrameAudioData
 {
+    std::lock_guard<std::mutex> lock(m_pcmMutex);
     FrameAudioData data{};
 
     std::copy(m_waveformL.begin(), m_waveformL.begin() + WaveformSamples, data.waveformLeft.begin());
