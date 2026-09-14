@@ -55,6 +55,11 @@ void Shader::CompileProgram(const std::string& vertexShaderSource,
     {
         if (vertexShader) glDeleteShader(vertexShader);
         if (fragmentShader) glDeleteShader(fragmentShader);
+        if (m_shaderProgram)
+        {
+            glDeleteProgram(m_shaderProgram);
+            m_shaderProgram = 0;
+        }
         throw;
     }
 

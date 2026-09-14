@@ -39,6 +39,7 @@ target_link_libraries(projectM_main
         Audio
         MilkdropPreset
         Renderer
+        UserSprites
         hlslparser
         stb_image
         libprojectM::API
@@ -193,6 +194,29 @@ else()
 endif()
 
 add_library(libprojectM::projectM ALIAS projectM)
+
+add_executable(projectM-benchmark
+        ${PROJECTM_SOURCE_DIR}/tests/libprojectM/BenchmarkHeadless.cpp
+        )
+
+target_include_directories(projectM-benchmark
+        PRIVATE
+        "${PROJECTM_SOURCE_DIR}/src/api/include"
+        "${PROJECTM_SOURCE_DIR}/src/libprojectM"
+        "${PROJECTM_SOURCE_DIR}/vendor/hlslparser/src"
+        )
+
+target_link_libraries(projectM-benchmark
+        PRIVATE
+        Audio
+        MilkdropPreset
+        Renderer
+        UserSprites
+        projectM_main
+        hlslparser
+        stb_image
+        libprojectM::API
+        )
 
 if(ENABLE_INSTALL)
 
