@@ -30,7 +30,7 @@ jobs:
 
     steps:
       - name: Checkout vcpkg
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
         with:
           repository: microsoft/vcpkg
           path: vcpkg
@@ -57,7 +57,7 @@ jobs:
             -Source "${{ env.FEED_URL }}"
 
       - name: Checkout libprojectM
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
         with:
           submodules: 'recursive'
 
@@ -167,7 +167,7 @@ jobs:
           cmake --build "${{ github.workspace }}/cmake-build-cxx-api" --config "Release"
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
             name: projectm-windows-${{ matrix.libs }}-${{ matrix.fslib }}-${{ matrix.arch }}-${{ matrix.runs-on }}
             path: install/*
