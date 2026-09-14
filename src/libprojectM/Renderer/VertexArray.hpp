@@ -29,7 +29,10 @@ public:
      */
     VertexArray()
     {
-        glGenVertexArrays(1, &m_vaoID);
+        if (glGenVertexArrays != nullptr)
+        {
+            glGenVertexArrays(1, &m_vaoID);
+        }
     }
 
     /**
@@ -37,7 +40,10 @@ public:
      */
     virtual ~VertexArray()
     {
-        glDeleteVertexArrays(1, &m_vaoID);
+        if (m_vaoID != 0 && glDeleteVertexArrays != nullptr)
+        {
+            glDeleteVertexArrays(1, &m_vaoID);
+        }
         m_vaoID = 0;
     }
 

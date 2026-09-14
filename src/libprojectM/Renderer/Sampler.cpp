@@ -7,11 +7,14 @@ Sampler::Sampler(const GLint wrapMode, const GLint filterMode)
     : m_wrapMode(wrapMode)
     , m_filterMode(filterMode)
 {
-    glGenSamplers(1, &m_samplerId);
-    glSamplerParameteri(m_samplerId, GL_TEXTURE_MIN_FILTER, filterMode);
-    glSamplerParameteri(m_samplerId, GL_TEXTURE_MAG_FILTER, filterMode);
-    glSamplerParameteri(m_samplerId, GL_TEXTURE_WRAP_S, wrapMode);
-    glSamplerParameteri(m_samplerId, GL_TEXTURE_WRAP_T, wrapMode);
+    if (glGenSamplers != nullptr)
+    {
+        glGenSamplers(1, &m_samplerId);
+        glSamplerParameteri(m_samplerId, GL_TEXTURE_MIN_FILTER, filterMode);
+        glSamplerParameteri(m_samplerId, GL_TEXTURE_MAG_FILTER, filterMode);
+        glSamplerParameteri(m_samplerId, GL_TEXTURE_WRAP_S, wrapMode);
+        glSamplerParameteri(m_samplerId, GL_TEXTURE_WRAP_T, wrapMode);
+    }
 }
 
 
@@ -42,7 +45,11 @@ auto Sampler::operator=(Sampler&& other) noexcept -> Sampler&
 
 Sampler::~Sampler()
 {
-    glDeleteSamplers(1, &m_samplerId);
+    if (m_samplerId != 0 && glDeleteSamplers != nullptr)
+    {
+        glDeleteSamplers(1, &m_samplerId);
+        m_samplerId = 0;
+    }
 }
 
 void Sampler::Bind(GLuint unit) const

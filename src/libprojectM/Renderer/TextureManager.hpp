@@ -4,6 +4,7 @@
 #include "Renderer/TextureTypes.hpp"
 
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -60,6 +61,11 @@ public:
     void PurgeTextures();
 
     /**
+     * @brief Resets all cached texture files and negative lookups when search paths change.
+     */
+    void ClearFileCache();
+
+    /**
      * @brief Sets a callback function for loading textures from non-filesystem sources.
      * @param callback The callback function, or nullptr to disable.
      */
@@ -108,6 +114,7 @@ private:
     std::map<std::string, std::shared_ptr<Texture>> m_textures;             //!< All loaded textures, including generated ones.
     std::map<std::pair<GLint, GLint>, std::shared_ptr<Sampler>> m_samplers; //!< The four sampler objects for each combination of wrap and filter modes.
     std::map<std::string, UsageStats> m_textureStats;                       //!< Map with texture stats for user-loaded files.
+    std::set<std::string> m_notFoundTextures;                               //!< Cache of texture names known to not exist to prevent repeated disk searches.
     std::vector<std::string> m_randomTextures;
     std::vector<std::string> m_extensions{".jpg", ".jpeg", ".dds", ".png", ".tga", ".bmp", ".dib"};
 

@@ -6,14 +6,20 @@ namespace Renderer {
 Framebuffer::Framebuffer()
 {
     m_framebufferIds.resize(1);
-    glGenFramebuffers(1, m_framebufferIds.data());
+    if (glGenFramebuffers != nullptr)
+    {
+        glGenFramebuffers(1, m_framebufferIds.data());
+    }
     m_attachments.emplace(0, AttachmentsPerSlot());
 }
 
 Framebuffer::Framebuffer(int framebufferCount)
 {
     m_framebufferIds.resize(framebufferCount);
-    glGenFramebuffers(framebufferCount, m_framebufferIds.data());
+    if (glGenFramebuffers != nullptr)
+    {
+        glGenFramebuffers(framebufferCount, m_framebufferIds.data());
+    }
     for (int index = 0; index < framebufferCount; index++)
     {
         m_attachments.emplace(index, AttachmentsPerSlot());
@@ -24,8 +30,10 @@ Framebuffer::~Framebuffer()
 {
     if (!m_framebufferIds.empty())
     {
-        // Delete FBOs first — this also releases driver references to attached textures.
-        glDeleteFramebuffers(static_cast<int>(m_framebufferIds.size()), m_framebufferIds.data());
+        if (glDeleteFramebuffers != nullptr)
+        {
+            glDeleteFramebuffers(static_cast<int>(m_framebufferIds.size()), m_framebufferIds.data());
+        }
         m_framebufferIds.clear();
 
         m_attachments.clear();

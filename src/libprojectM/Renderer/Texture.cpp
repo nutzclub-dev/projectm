@@ -6,7 +6,8 @@ namespace libprojectM {
 namespace Renderer {
 
 Texture::Texture(std::string name, const int width, const int height, const bool isUserTexture)
-    : m_target(GL_TEXTURE_2D)
+    : m_textureId(0)
+    , m_target(GL_TEXTURE_2D)
     , m_name(std::move(name))
     , m_width(width)
     , m_height(height)
@@ -20,7 +21,8 @@ Texture::Texture(std::string name, const int width, const int height, const bool
 
 Texture::Texture(std::string name, GLenum target, int width, int height, int depth,
                  GLint internalFormat, GLenum format, GLenum type, bool isUserTexture)
-    : m_target(target)
+    : m_textureId(0)
+    , m_target(target)
     , m_name(std::move(name))
     , m_width(width)
     , m_height(height)
@@ -46,7 +48,8 @@ Texture::Texture(std::string name, const GLuint texID, const GLenum target,
 }
 
 Texture::Texture(std::string name, const void* data, GLenum target, int width, int height, int depth, GLint internalFormat, GLenum format, GLenum type, bool isUserTexture)
-    : m_target(target)
+    : m_textureId(0)
+    , m_target(target)
     , m_name(std::move(name))
     , m_width(width)
     , m_height(height)
@@ -56,8 +59,11 @@ Texture::Texture(std::string name, const void* data, GLenum target, int width, i
     , m_format(format)
     , m_type(type)
 {
-    glGenTextures(1, &m_textureId);
-    Update(data);
+    if (glGenTextures != nullptr)
+    {
+        glGenTextures(1, &m_textureId);
+        Update(data);
+    }
 }
 
 Texture::Texture(Texture&& other) noexcept
@@ -113,7 +119,10 @@ Texture::~Texture()
 {
     if (m_textureId > 0 && m_owned)
     {
-        glDeleteTextures(1, &m_textureId);
+        if (glDeleteTextures != nullptr)
+        {
+            glDeleteTextures(1, &m_textureId);
+        }
         m_textureId = 0;
     }
 }
@@ -177,17 +186,17 @@ auto Texture::Empty() const -> bool
 
 void Texture::Update(const void* data) const
 {
+    if (m_textureId == 0) return;
     glBindTexture(m_target, m_textureId);
     switch (m_target)
     {
         case GL_TEXTURE_2D:
-            glTexImage2D(m_target, 0, m_internalFormat, m_width, m_height, 0, m_format, m_type, data);
+            if (glTexImage2D) glTexImage2D(m_target, 0, m_internalFormat, m_width, m_height, 0, m_format, m_type, data);
             break;
         case GL_TEXTURE_3D:
-            glTexImage3D(m_target, 0, m_internalFormat, m_width, m_height, m_depth, 0, m_format, m_type, data);
+            if (glTexImage3D) glTexImage3D(m_target, 0, m_internalFormat, m_width, m_height, m_depth, 0, m_format, m_type, data);
             break;
         default:
-            // Unsupported, do nothing.
             break;
     }
     glBindTexture(m_target, 0);
@@ -195,18 +204,22 @@ void Texture::Update(const void* data) const
 
 void Texture::CreateNewTexture()
 {
+    if (glGenTextures == nullptr)
+    {
+        m_textureId = 0;
+        return;
+    }
     glGenTextures(1, &m_textureId);
     glBindTexture(m_target, m_textureId);
     switch (m_target)
     {
         case GL_TEXTURE_2D:
-            glTexImage2D(m_target, 0, m_internalFormat, m_width, m_height, 0, m_format, m_type, nullptr);
+            if (glTexImage2D) glTexImage2D(m_target, 0, m_internalFormat, m_width, m_height, 0, m_format, m_type, nullptr);
             break;
         case GL_TEXTURE_3D:
-            glTexImage3D(m_target, 0, m_internalFormat, m_width, m_height, m_depth, 0, m_format, m_type, nullptr);
+            if (glTexImage3D) glTexImage3D(m_target, 0, m_internalFormat, m_width, m_height, m_depth, 0, m_format, m_type, nullptr);
             break;
         default:
-            // Unsupported, do nothing.
             break;
     }
     glBindTexture(m_target, 0);

@@ -5,18 +5,28 @@ namespace Renderer {
 
 VertexIndexArray::VertexIndexArray()
 {
-    glGenBuffers(1, &m_veabID);
+    if (glGenBuffers != nullptr)
+    {
+        glGenBuffers(1, &m_veabID);
+    }
 }
 
 VertexIndexArray::VertexIndexArray(VertexBufferUsage usage)
     : m_vboUsage(usage)
 {
-    glGenBuffers(1, &m_veabID);
+    if (glGenBuffers != nullptr)
+    {
+        glGenBuffers(1, &m_veabID);
+    }
 }
 
 VertexIndexArray::~VertexIndexArray()
 {
-    if (m_veabID) glDeleteBuffers(1, &m_veabID);
+    if (m_veabID != 0 && glDeleteBuffers != nullptr)
+    {
+        glDeleteBuffers(1, &m_veabID);
+        m_veabID = 0;
+    }
 }
 
 void VertexIndexArray::Bind() const

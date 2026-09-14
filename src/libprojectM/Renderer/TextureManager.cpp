@@ -31,8 +31,20 @@ TextureManager::TextureManager(const std::vector<std::string>& textureSearchPath
     Preload();
 }
 
-void TextureManager::SetCurrentPresetPath(const std::string&)
+void TextureManager::SetCurrentPresetPath(const std::string& path)
 {
+    if (m_currentPresetDir != path)
+    {
+        m_currentPresetDir = path;
+        ClearFileCache();
+    }
+}
+
+void TextureManager::ClearFileCache()
+{
+    m_scannedTextureFiles.clear();
+    m_filesScanned = false;
+    m_notFoundTextures.clear();
 }
 
 TextureSamplerDescriptor TextureManager::GetTexture(const std::string& fullName)
@@ -123,9 +135,9 @@ void TextureManager::PurgeTextures()
         }
     }
 
-    // Clear file cache
-    m_scannedTextureFiles.clear();
-    m_filesScanned = false;
+    // Keep scanned files across presets if search paths haven't changed,
+    // but reset negative lookup cache if new files might have appeared.
+    // However, m_filesScanned ensures we don't re-scan disk every frame or every preset unless needed.
 
     // Only purge textures with an age of 2 or higher, so we don't evict textures used by the preset being blended out
     uint32_t newest = 99999999;
@@ -182,6 +194,11 @@ auto TextureManager::TryLoadingTexture(const std::string& name) -> TextureSample
     ExtractTextureSettings(name, wrapMode, filterMode, unqualifiedName);
 
     std::string lowerCaseUnqualifiedName = Utils::ToLower(unqualifiedName);
+
+    if (m_notFoundTextures.find(lowerCaseUnqualifiedName) != m_notFoundTextures.end())
+    {
+        return {m_placeholderTexture, m_samplers.at({wrapMode, filterMode}), name, unqualifiedName};
+    }
 
     // Try callback first if registered
     if (m_textureLoadCallback)
@@ -253,6 +270,7 @@ auto TextureManager::TryLoadingTexture(const std::string& name) -> TextureSample
     }
 
     LOG_WARN("[TextureManager] Failed to find requested texture \"" + unqualifiedName + "\"");
+    m_notFoundTextures.insert(lowerCaseUnqualifiedName);
 
     // Return a placeholder.
     return {m_placeholderTexture, m_samplers.at({wrapMode, filterMode}), name, unqualifiedName};
@@ -412,7 +430,13 @@ void TextureManager::ScanTextures()
 {
     if (!m_filesScanned)
     {
-        FileScanner fileScanner = FileScanner(m_textureSearchPaths, m_extensions);
+        std::vector<std::string> searchPaths = m_textureSearchPaths;
+        if (!m_currentPresetDir.empty())
+        {
+            searchPaths.insert(searchPaths.begin(), m_currentPresetDir);
+        }
+
+        FileScanner fileScanner = FileScanner(searchPaths, m_extensions);
 
         using namespace std::placeholders;
         fileScanner.Scan(std::bind(&TextureManager::AddTextureFile, this, _1, _2));

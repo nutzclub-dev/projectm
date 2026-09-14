@@ -190,20 +190,30 @@ private:
 template<class VT>
 VertexBuffer<VT>::VertexBuffer()
 {
-    glGenBuffers(1, &m_vboID);
+    if (glGenBuffers != nullptr)
+    {
+        glGenBuffers(1, &m_vboID);
+    }
 }
 
 template<class VT>
 VertexBuffer<VT>::VertexBuffer(VertexBufferUsage usage)
     : m_vboUsage(usage)
 {
-    glGenBuffers(1, &m_vboID);
+    if (glGenBuffers != nullptr)
+    {
+        glGenBuffers(1, &m_vboID);
+    }
 }
 
 template<class VT>
 VertexBuffer<VT>::~VertexBuffer()
 {
-    if (m_vboID) glDeleteBuffers(1, &m_vboID);
+    if (m_vboID != 0 && glDeleteBuffers != nullptr)
+    {
+        glDeleteBuffers(1, &m_vboID);
+        m_vboID = 0;
+    }
 }
 
 template<class VT>

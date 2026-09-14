@@ -31,6 +31,7 @@ add_executable(projectM-unittest
         LoggingTest.cpp
         MilkdropShaderCommentParsingTest.cpp
         PresetFileParserTest.cpp
+        PresetReliabilityTest.cpp
         WaveformAlignerTest.cpp
 
         $<TARGET_OBJECTS:Audio>
@@ -53,6 +54,8 @@ target_include_directories(projectM-unittest
         "${PROJECTM_SOURCE_DIR}/src/libprojectM"
         "${PROJECTM_SOURCE_DIR}"
         "${PROJECTM_SOURCE_DIR}/vendor/hlslparser/src"
+        "${PROJECTM_SOURCE_DIR}/vendor/projectm-eval/projectm-eval"
+        "${PROJECTM_SOURCE_DIR}/vendor/projectm-eval/projectm-eval/api"
         )
 
 target_link_libraries(projectM-unittest
