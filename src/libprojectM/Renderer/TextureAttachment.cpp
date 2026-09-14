@@ -52,7 +52,7 @@ void TextureAttachment::SetSize(int width, int height)
     }
     else
     {
-        m_texture = std::make_unique<class Texture>();
+        m_texture = std::make_shared<class Texture>("", 0, 0, false);
     }
 }
 
@@ -63,7 +63,7 @@ void TextureAttachment::ReplaceTexture(int width, int height)
     GLenum pixelFormat;
 
     // Don't replace if size hasn't changed
-    if (m_texture->Width() == width && m_texture->Height() == height)
+    if (m_texture && m_texture->Width() == width && m_texture->Height() == height)
     {
         return;
     }
@@ -106,17 +106,26 @@ void TextureAttachment::ReplaceTexture(int width, int height)
 
     m_texture.reset();
 
-    GLuint textureId;
-    glGenTextures(1, &textureId);
-    glBindTexture(GL_TEXTURE_2D, textureId);
-    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, textureFormat, pixelFormat, nullptr);
+    GLuint textureId = 0;
+    if (glad_glGenTextures != nullptr && glad_glBindTexture != nullptr)
+    {
+        glGenTextures(1, &textureId);
+        glBindTexture(GL_TEXTURE_2D, textureId);
+        if (glad_glTexImage2D != nullptr)
+        {
+            glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, textureFormat, pixelFormat, nullptr);
+        }
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        if (glad_glTexParameteri != nullptr)
+        {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        }
 
-    glBindTexture(GL_TEXTURE_2D, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
 
     m_texture = std::make_shared<class Texture>("", textureId, GL_TEXTURE_2D, width, height, false);
 }

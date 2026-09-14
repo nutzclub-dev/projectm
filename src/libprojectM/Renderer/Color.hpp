@@ -168,7 +168,10 @@ public:
      */
     static void InitializeAttributePointer(uint32_t attributeIndex)
     {
-        glVertexAttribPointer(attributeIndex, sizeof(Color) / sizeof(float), GL_FLOAT, GL_FALSE, sizeof(Color), nullptr);
+        if (glad_glVertexAttribPointer != nullptr)
+        {
+            glVertexAttribPointer(attributeIndex, sizeof(Color) / sizeof(float), GL_FLOAT, GL_FALSE, sizeof(Color), nullptr);
+        }
     }
 
 private:

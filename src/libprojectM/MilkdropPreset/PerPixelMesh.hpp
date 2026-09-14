@@ -62,7 +62,10 @@ private:
 
         static void InitializeAttributePointer(uint32_t attributeIndex)
         {
-            glVertexAttribPointer(attributeIndex, sizeof(RadiusAngle) / sizeof(float), GL_FLOAT, GL_FALSE, sizeof(RadiusAngle), nullptr);
+            if (glad_glVertexAttribPointer != nullptr)
+            {
+                glVertexAttribPointer(attributeIndex, sizeof(RadiusAngle) / sizeof(float), GL_FLOAT, GL_FALSE, sizeof(RadiusAngle), nullptr);
+            }
         }
     };
 
@@ -77,7 +80,10 @@ private:
 
         static void InitializeAttributePointer(uint32_t attributeIndex)
         {
-            glVertexAttribPointer(attributeIndex, sizeof(ZoomRotWarp) / sizeof(float), GL_FLOAT, GL_FALSE, sizeof(ZoomRotWarp), nullptr);
+            if (glad_glVertexAttribPointer != nullptr)
+            {
+                glVertexAttribPointer(attributeIndex, sizeof(ZoomRotWarp) / sizeof(float), GL_FLOAT, GL_FALSE, sizeof(ZoomRotWarp), nullptr);
+            }
         }
     };
 

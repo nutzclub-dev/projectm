@@ -29,7 +29,7 @@ public:
      */
     VertexArray()
     {
-        if (glGenVertexArrays != nullptr)
+        if (glad_glGenVertexArrays != nullptr)
         {
             glGenVertexArrays(1, &m_vaoID);
         }
@@ -40,7 +40,7 @@ public:
      */
     virtual ~VertexArray()
     {
-        if (m_vaoID != 0 && glDeleteVertexArrays != nullptr)
+        if (m_vaoID != 0 && glad_glDeleteVertexArrays != nullptr)
         {
             glDeleteVertexArrays(1, &m_vaoID);
         }
@@ -52,7 +52,10 @@ public:
      */
     void Bind() const
     {
-        glBindVertexArray(m_vaoID);
+        if (glad_glBindVertexArray != nullptr)
+        {
+            glBindVertexArray(m_vaoID);
+        }
     }
 
     /**
@@ -60,7 +63,10 @@ public:
      */
     static void Unbind()
     {
-        glBindVertexArray(0);
+        if (glad_glBindVertexArray != nullptr)
+        {
+            glBindVertexArray(0);
+        }
     }
 
 private:

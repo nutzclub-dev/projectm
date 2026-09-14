@@ -66,7 +66,10 @@ public:
      */
     static void InitializeAttributePointer(uint32_t attributeIndex)
     {
-        glVertexAttribPointer(attributeIndex, sizeof(TextureUV) / sizeof(float), GL_FLOAT, GL_FALSE, sizeof(TextureUV), nullptr);
+        if (glad_glVertexAttribPointer != nullptr)
+        {
+            glVertexAttribPointer(attributeIndex, sizeof(TextureUV) / sizeof(float), GL_FLOAT, GL_FALSE, sizeof(TextureUV), nullptr);
+        }
     }
 
 private:
