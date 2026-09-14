@@ -90,6 +90,13 @@ void Shader::CompileProgram(const std::string& vertexShaderSource,
     LOG_ERROR(linkError);
     LOG_DEBUG("[Shader] Vertex shader source: " + vertexShaderSource);
     LOG_DEBUG("[Shader] Fragment shader source: " + fragmentShaderSource);
+
+    if (m_shaderProgram)
+    {
+        glDeleteProgram(m_shaderProgram);
+        m_shaderProgram = 0;
+    }
+
     throw ShaderException(linkError);
 }
 
