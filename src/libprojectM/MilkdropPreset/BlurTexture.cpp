@@ -16,7 +16,6 @@ namespace MilkdropPreset {
 
 BlurTexture::BlurTexture()
     : m_blurMesh(Renderer::VertexBufferUsage::StaticDraw, false, true)
-    , m_blurSampler(std::make_shared<Renderer::Sampler>(GL_CLAMP_TO_EDGE, GL_LINEAR))
 {
     m_blurFramebuffer.CreateColorAttachment(0, 0);
 
@@ -33,8 +32,6 @@ BlurTexture::BlurTexture()
                           {0.0, 1.0},
                           {1.0, 1.0}});
 
-    m_blurMesh.Update();
-
     // Initialize with empty textures.
     for (size_t i = 0; i < m_blurTextures.size(); i++)
     {
@@ -50,6 +47,12 @@ BlurTexture::BlurTexture()
 
 void BlurTexture::Initialize(const Renderer::RenderContext& renderContext)
 {
+    if (!m_blurSampler)
+    {
+        m_blurSampler = std::make_shared<Renderer::Sampler>(GL_CLAMP_TO_EDGE, GL_LINEAR);
+    }
+    m_blurMesh.Update();
+
     auto staticShaders = libprojectM::MilkdropPreset::MilkdropStaticShaders::Get();
 
     // Load/compile shader sources
@@ -144,10 +147,13 @@ void BlurTexture::Update(const Renderer::Texture& sourceTexture, const PerFrameC
     bias[2] = -tempMin * scale[2];
 
     // Remember previously bound framebuffer
-    GLint origReadFramebuffer;
-    GLint origDrawFramebuffer;
-    glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &origReadFramebuffer);
-    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &origDrawFramebuffer);
+    GLint origReadFramebuffer = 0;
+    GLint origDrawFramebuffer = 0;
+    if (glGetIntegerv != nullptr)
+    {
+        glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &origReadFramebuffer);
+        glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &origDrawFramebuffer);
+    }
 
     m_blurFramebuffer.Bind(0);
 
@@ -178,7 +184,10 @@ void BlurTexture::Update(const Renderer::Texture& sourceTexture, const PerFrameC
         blurShader->Bind();
         blurShader->SetUniformInt("texture_sampler", 0);
 
-        glViewport(0, 0, m_blurTextures[pass]->Width(), m_blurTextures[pass]->Height());
+        if (glViewport != nullptr)
+        {
+            glViewport(0, 0, m_blurTextures[pass]->Width(), m_blurTextures[pass]->Height());
+        }
 
         // hook up correct source texture - assume there is only one, at stage 0
         if (pass == 0)
@@ -259,7 +268,10 @@ void BlurTexture::Update(const Renderer::Texture& sourceTexture, const PerFrameC
 
         // Save to blur texture
         m_blurTextures[pass]->Bind(0);
-        glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, m_blurTextures[pass]->Width(), m_blurTextures[pass]->Height());
+        if (glCopyTexSubImage2D != nullptr)
+        {
+            glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, m_blurTextures[pass]->Width(), m_blurTextures[pass]->Height());
+        }
         m_blurTextures[pass]->Unbind(0);
     }
 
@@ -267,9 +279,15 @@ void BlurTexture::Update(const Renderer::Texture& sourceTexture, const PerFrameC
     Renderer::BlendMode::Set(false, Renderer::BlendMode::Function::SourceAlpha, Renderer::BlendMode::Function::OneMinusSourceAlpha);
 
     // Bind previous framebuffer and reset viewport size
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, origReadFramebuffer);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, origDrawFramebuffer);
-    glViewport(0, 0, sourceTexture.Width(), sourceTexture.Height());
+    if (glBindFramebuffer != nullptr)
+    {
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, origReadFramebuffer);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, origDrawFramebuffer);
+    }
+    if (glViewport != nullptr)
+    {
+        glViewport(0, 0, sourceTexture.Width(), sourceTexture.Height());
+    }
 
     Renderer::Shader::Unbind();
 }

@@ -5,28 +5,44 @@ namespace Renderer {
 
 VertexIndexArray::VertexIndexArray()
 {
-    glGenBuffers(1, &m_veabID);
+    if (glGenBuffers != nullptr)
+    {
+        glGenBuffers(1, &m_veabID);
+    }
 }
 
 VertexIndexArray::VertexIndexArray(VertexBufferUsage usage)
     : m_vboUsage(usage)
 {
-    glGenBuffers(1, &m_veabID);
+    if (glGenBuffers != nullptr)
+    {
+        glGenBuffers(1, &m_veabID);
+    }
 }
 
 VertexIndexArray::~VertexIndexArray()
 {
-    if (m_veabID) glDeleteBuffers(1, &m_veabID);
+    if (m_veabID != 0 && glDeleteBuffers != nullptr)
+    {
+        glDeleteBuffers(1, &m_veabID);
+        m_veabID = 0;
+    }
 }
 
 void VertexIndexArray::Bind() const
 {
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_veabID);
+    if (glBindBuffer != nullptr)
+    {
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_veabID);
+    }
 }
 
 void VertexIndexArray::Unbind()
 {
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    if (glBindBuffer != nullptr)
+    {
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    }
 }
 
 auto VertexIndexArray::Get() -> std::vector<uint32_t>&
@@ -101,17 +117,29 @@ void VertexIndexArray::Update()
 
     if (m_vboUsage == VertexBufferUsage::DynamicDraw || m_vboUsage == VertexBufferUsage::StreamDraw)
     {
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, dataSize, nullptr, usageGL);
-        glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, dataSize, m_indices.data());
+        if (glBufferData != nullptr)
+        {
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, dataSize, nullptr, usageGL);
+        }
+        if (glBufferSubData != nullptr)
+        {
+            glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, dataSize, m_indices.data());
+        }
         m_veabSize = m_indices.size();
     }
     else if (m_veabSize == m_indices.size())
     {
-        glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, dataSize, m_indices.data());
+        if (glBufferSubData != nullptr)
+        {
+            glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, dataSize, m_indices.data());
+        }
     }
     else
     {
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, dataSize, m_indices.data(), usageGL);
+        if (glBufferData != nullptr)
+        {
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, dataSize, m_indices.data(), usageGL);
+        }
         m_veabSize = m_indices.size();
     }
 }

@@ -34,7 +34,7 @@ public:
     }
     auto operator=(VertexBuffer&& other) noexcept -> VertexBuffer& {
         if (this != &other) {
-            if (m_vboID) glDeleteBuffers(1, &m_vboID);
+            if (m_vboID != 0 && glad_glDeleteBuffers != nullptr) glDeleteBuffers(1, &m_vboID);
             m_vboID = other.m_vboID;
             m_vboSize = other.m_vboSize;
             m_vboUsage = other.m_vboUsage;
@@ -190,32 +190,48 @@ private:
 template<class VT>
 VertexBuffer<VT>::VertexBuffer()
 {
-    glGenBuffers(1, &m_vboID);
+    if (glad_glGenBuffers != nullptr)
+    {
+        glGenBuffers(1, &m_vboID);
+    }
 }
 
 template<class VT>
 VertexBuffer<VT>::VertexBuffer(VertexBufferUsage usage)
     : m_vboUsage(usage)
 {
-    glGenBuffers(1, &m_vboID);
+    if (glad_glGenBuffers != nullptr)
+    {
+        glGenBuffers(1, &m_vboID);
+    }
 }
 
 template<class VT>
 VertexBuffer<VT>::~VertexBuffer()
 {
-    if (m_vboID) glDeleteBuffers(1, &m_vboID);
+    if (m_vboID != 0 && glad_glDeleteBuffers != nullptr)
+    {
+        glDeleteBuffers(1, &m_vboID);
+        m_vboID = 0;
+    }
 }
 
 template<class VT>
 void VertexBuffer<VT>::Bind() const
 {
-    glBindBuffer(GL_ARRAY_BUFFER, m_vboID);
+    if (glad_glBindBuffer != nullptr)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, m_vboID);
+    }
 }
 
 template<class VT>
 void VertexBuffer<VT>::Unbind()
 {
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    if (glad_glBindBuffer != nullptr)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
 }
 
 template<class VT>
@@ -230,11 +246,17 @@ void VertexBuffer<VT>::SetEnableAttributeArray(uint32_t attributeIndex, bool ena
 {
     if (enable)
     {
-        glEnableVertexAttribArray(attributeIndex);
+        if (glad_glEnableVertexAttribArray != nullptr)
+        {
+            glEnableVertexAttribArray(attributeIndex);
+        }
     }
     else
     {
-        glDisableVertexAttribArray(attributeIndex);
+        if (glad_glDisableVertexAttribArray != nullptr)
+        {
+            glDisableVertexAttribArray(attributeIndex);
+        }
     }
 }
 
@@ -314,17 +336,29 @@ void VertexBuffer<VT>::Update()
     if (m_vboUsage == VertexBufferUsage::DynamicDraw || m_vboUsage == VertexBufferUsage::StreamDraw)
     {
         // Orphan buffer by passing nullptr to discard previous GPU storage
-        glBufferData(GL_ARRAY_BUFFER, dataSize, nullptr, usageGL);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, dataSize, m_vertices.data());
+        if (glad_glBufferData != nullptr)
+        {
+            glBufferData(GL_ARRAY_BUFFER, dataSize, nullptr, usageGL);
+        }
+        if (glad_glBufferSubData != nullptr)
+        {
+            glBufferSubData(GL_ARRAY_BUFFER, 0, dataSize, m_vertices.data());
+        }
         m_vboSize = m_vertices.size();
     }
     else if (m_vboSize == m_vertices.size())
     {
-        glBufferSubData(GL_ARRAY_BUFFER, 0, dataSize, m_vertices.data());
+        if (glad_glBufferSubData != nullptr)
+        {
+            glBufferSubData(GL_ARRAY_BUFFER, 0, dataSize, m_vertices.data());
+        }
     }
     else
     {
-        glBufferData(GL_ARRAY_BUFFER, dataSize, m_vertices.data(), usageGL);
+        if (glad_glBufferData != nullptr)
+        {
+            glBufferData(GL_ARRAY_BUFFER, dataSize, m_vertices.data(), usageGL);
+        }
         m_vboSize = m_vertices.size();
     }
 }

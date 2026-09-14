@@ -294,7 +294,24 @@ void ProjectM::StartPresetTransition(std::unique_ptr<Preset>&& preset, bool hard
         return;
     }
 
-    preset->Initialize(GetRenderContext());
+    try
+    {
+        preset->Initialize(GetRenderContext());
+    }
+    catch (const std::exception& ex)
+    {
+        std::string presetName = preset->Filename();
+        LOG_ERROR("[ProjectM] Preset initialization failed for \"" + presetName + "\": " + ex.what());
+        PresetSwitchFailedEvent(presetName, ex.what());
+
+        // Do not corrupt active preset or transition state.
+        if (!m_activePreset)
+        {
+            LOG_WARN("[ProjectM] No active preset available; attempting idle preset fallback.");
+            LoadIdlePreset();
+        }
+        return;
+    }
 
     // If already in a transition, force immediate completion.
     if (m_transitioningPreset != nullptr)
@@ -305,7 +322,14 @@ void ProjectM::StartPresetTransition(std::unique_ptr<Preset>&& preset, bool hard
 
     if (m_activePreset && !m_presetStartClean)
     {
-        preset->DrawInitialImage(m_activePreset->OutputTexture(), GetRenderContext());
+        try
+        {
+            preset->DrawInitialImage(m_activePreset->OutputTexture(), GetRenderContext());
+        }
+        catch (const std::exception& ex)
+        {
+            LOG_ERROR("[ProjectM] Failed to draw initial image for transition: " + std::string(ex.what()));
+        }
     }
 
     if (hardCut)
