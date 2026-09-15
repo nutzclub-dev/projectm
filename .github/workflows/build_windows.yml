@@ -26,11 +26,11 @@ jobs:
         libs: ['shared', 'static']
         fslib: ['stl', 'boost']
         arch: ['X64', 'Win32']
-        runs-on: ['windows-2025', 'windows-2022']
+        runs-on: ['windows-2022']
 
     steps:
       - name: Checkout vcpkg
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
         with:
           repository: microsoft/vcpkg
           path: vcpkg
@@ -57,9 +57,10 @@ jobs:
             -Source "${{ env.FEED_URL }}"
 
       - name: Checkout libprojectM
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
         with:
           submodules: 'recursive'
+          clean: false
 
       - name: Configure Build
         run: |
@@ -212,8 +213,35 @@ jobs:
             Write-Host "Static build matrix entry - skipping shared DLL verification."
           }
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v7
+      - name: Package Windows ZIP Artifact
+        if: matrix.libs == 'shared' && matrix.fslib == 'stl' && matrix.runs-on == 'windows-2022'
+        shell: pwsh
+        run: |
+          if ("${{ matrix.arch }}" -eq "X64") {
+            $archName = "x64"
+          } else {
+            $archName = "x86"
+          }
+          $zipName = "projectM-windows-$archName.zip"
+          $packageDir = "${{ github.workspace }}/package-$archName"
+
+          New-Item -ItemType Directory -Force -Path $packageDir | Out-Null
+          Copy-Item -Path "${{ github.workspace }}/install/*" -Destination $packageDir -Recurse -Force
+
+          Compress-Archive -Path "$packageDir/*" -DestinationPath "${{ github.workspace }}/$zipName" -Force
+          Write-Host "Created release package ZIP: $zipName"
+
+          Get-FileHash -Algorithm SHA256 "${{ github.workspace }}/$zipName" | Format-List
+
+      - name: Upload Artifact Zip
+        if: matrix.libs == 'shared' && matrix.fslib == 'stl' && matrix.runs-on == 'windows-2022'
+        uses: actions/upload-artifact@v4
+        with:
+            name: projectM-windows-${{ matrix.arch == 'X64' && 'x64' || 'x86' }}
+            path: ${{ github.workspace }}/projectM-windows-*.zip
+
+      - name: Upload Full Install Artifact
+        uses: actions/upload-artifact@v4
         with:
             name: projectm-windows-${{ matrix.libs }}-${{ matrix.fslib }}-${{ matrix.arch }}-${{ matrix.runs-on }}
             path: install/*

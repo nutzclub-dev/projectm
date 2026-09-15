@@ -7,7 +7,7 @@ Sampler::Sampler(const GLint wrapMode, const GLint filterMode)
     : m_wrapMode(wrapMode)
     , m_filterMode(filterMode)
 {
-    if (glGenSamplers != nullptr)
+    if (glad_glGenSamplers != nullptr)
     {
         glGenSamplers(1, &m_samplerId);
         glSamplerParameteri(m_samplerId, GL_TEXTURE_MIN_FILTER, filterMode);
@@ -30,7 +30,7 @@ auto Sampler::operator=(Sampler&& other) noexcept -> Sampler&
 {
     if (this != &other)
     {
-        if (m_samplerId != 0)
+        if (m_samplerId != 0 && glad_glDeleteSamplers != nullptr)
         {
             glDeleteSamplers(1, &m_samplerId);
         }
@@ -45,7 +45,7 @@ auto Sampler::operator=(Sampler&& other) noexcept -> Sampler&
 
 Sampler::~Sampler()
 {
-    if (m_samplerId != 0 && glDeleteSamplers != nullptr)
+    if (m_samplerId != 0 && glad_glDeleteSamplers != nullptr)
     {
         glDeleteSamplers(1, &m_samplerId);
         m_samplerId = 0;
@@ -54,12 +54,18 @@ Sampler::~Sampler()
 
 void Sampler::Bind(GLuint unit) const
 {
-    glBindSampler(unit, m_samplerId);
+    if (glad_glBindSampler != nullptr)
+    {
+        glBindSampler(unit, m_samplerId);
+    }
 }
 
 void Sampler::Unbind(GLuint unit)
 {
-    glBindSampler(unit, 0);
+    if (glad_glBindSampler != nullptr)
+    {
+        glBindSampler(unit, 0);
+    }
 }
 
 auto Sampler::WrapMode() const -> GLint
@@ -76,8 +82,11 @@ void Sampler::WrapMode(GLint wrapMode)
 
     m_wrapMode = wrapMode;
 
-    glSamplerParameteri(m_samplerId, GL_TEXTURE_WRAP_S, wrapMode);
-    glSamplerParameteri(m_samplerId, GL_TEXTURE_WRAP_T, wrapMode);
+    if (glad_glSamplerParameteri != nullptr)
+    {
+        glSamplerParameteri(m_samplerId, GL_TEXTURE_WRAP_S, wrapMode);
+        glSamplerParameteri(m_samplerId, GL_TEXTURE_WRAP_T, wrapMode);
+    }
 }
 
 auto Sampler::FilterMode() const -> GLint
@@ -94,8 +103,11 @@ void Sampler::FilterMode(GLint filterMode)
 
     m_filterMode = filterMode;
 
-    glSamplerParameteri(m_samplerId, GL_TEXTURE_MIN_FILTER, filterMode);
-    glSamplerParameteri(m_samplerId, GL_TEXTURE_MAG_FILTER, filterMode);
+    if (glad_glSamplerParameteri != nullptr)
+    {
+        glSamplerParameteri(m_samplerId, GL_TEXTURE_MIN_FILTER, filterMode);
+        glSamplerParameteri(m_samplerId, GL_TEXTURE_MAG_FILTER, filterMode);
+    }
 }
 
 } // namespace Renderer

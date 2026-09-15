@@ -5,7 +5,7 @@ namespace Renderer {
 
 VertexIndexArray::VertexIndexArray()
 {
-    if (glGenBuffers != nullptr)
+    if (glad_glGenBuffers != nullptr)
     {
         glGenBuffers(1, &m_veabID);
     }
@@ -14,7 +14,7 @@ VertexIndexArray::VertexIndexArray()
 VertexIndexArray::VertexIndexArray(VertexBufferUsage usage)
     : m_vboUsage(usage)
 {
-    if (glGenBuffers != nullptr)
+    if (glad_glGenBuffers != nullptr)
     {
         glGenBuffers(1, &m_veabID);
     }
@@ -22,7 +22,7 @@ VertexIndexArray::VertexIndexArray(VertexBufferUsage usage)
 
 VertexIndexArray::~VertexIndexArray()
 {
-    if (m_veabID != 0 && glDeleteBuffers != nullptr)
+    if (m_veabID != 0 && glad_glDeleteBuffers != nullptr)
     {
         glDeleteBuffers(1, &m_veabID);
         m_veabID = 0;
@@ -31,7 +31,7 @@ VertexIndexArray::~VertexIndexArray()
 
 void VertexIndexArray::Bind() const
 {
-    if (glBindBuffer != nullptr)
+    if (glad_glBindBuffer != nullptr)
     {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_veabID);
     }
@@ -39,7 +39,7 @@ void VertexIndexArray::Bind() const
 
 void VertexIndexArray::Unbind()
 {
-    if (glBindBuffer != nullptr)
+    if (glad_glBindBuffer != nullptr)
     {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     }
@@ -117,11 +117,11 @@ void VertexIndexArray::Update()
 
     if (m_vboUsage == VertexBufferUsage::DynamicDraw || m_vboUsage == VertexBufferUsage::StreamDraw)
     {
-        if (glBufferData != nullptr)
+        if (glad_glBufferData != nullptr)
         {
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, dataSize, nullptr, usageGL);
         }
-        if (glBufferSubData != nullptr)
+        if (glad_glBufferSubData != nullptr)
         {
             glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, dataSize, m_indices.data());
         }
@@ -129,14 +129,14 @@ void VertexIndexArray::Update()
     }
     else if (m_veabSize == m_indices.size())
     {
-        if (glBufferSubData != nullptr)
+        if (glad_glBufferSubData != nullptr)
         {
             glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, dataSize, m_indices.data());
         }
     }
     else
     {
-        if (glBufferData != nullptr)
+        if (glad_glBufferData != nullptr)
         {
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, dataSize, m_indices.data(), usageGL);
         }

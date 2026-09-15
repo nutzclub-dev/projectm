@@ -3,6 +3,7 @@ name: push_release
 on:
   push:
     tags:
+      - "v*"
       - "*-release"
 
 jobs:
@@ -10,33 +11,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Wait On Linux Build
-        uses: tomchv/wait-my-workflow@v1.1.0
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          checkName: 'linux_build'
-          ref: ${{ github.sha }}
-          intervalSeconds: 30
-          timeoutSeconds: 3600
-
-      - name: Wait On Emscripten Build
-        uses: tomchv/wait-my-workflow@v1.1.0
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          checkName: 'emscripten_build'
-          ref: ${{ github.sha }}
-          intervalSeconds: 30
-          timeoutSeconds: 3600
-
-      - name: Wait On macOs Build
-        uses: tomchv/wait-my-workflow@v1.1.0
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          checkName: 'osx_build'
-          ref: ${{ github.sha }}
-          intervalSeconds: 30
-          timeoutSeconds: 3600
-
       - name: Wait On Windows Build
         uses: tomchv/wait-my-workflow@v1.1.0
         with:
@@ -46,91 +20,47 @@ jobs:
           intervalSeconds: 60
           timeoutSeconds: 3600
 
-      - name: Download Artifacts From Linux Build
-        id: download-linux-artifact
-        uses: dawidd6/action-download-artifact@v6
-        with:
-            github_token: ${{secrets.GITHUB_TOKEN}}
-            workflow: build_linux.yml
-            workflow_conclusion: success
-            path: artifacts
-            commit: ${{ github.sha }}
-
-      - name: Create Linux Package
-        run: |
-          cd ${{ github.workspace }}/artifacts/projectm-linux-latest
-          tar -czvf projectm-linux-x64.tar.gz *
-          mv projectm-linux-x64.tar.gz ${{ github.workspace }}/projectm-linux-x64-${{ env.TAG }}.tar.gz
-
-      - name: Download Artifacts From Emscripten Build
-        id: download-emscripten-artifact
-        uses: dawidd6/action-download-artifact@v6
-        with:
-          github_token: ${{secrets.GITHUB_TOKEN}}
-          workflow: build_emscripten.yml
-          workflow_conclusion: success
-          path: artifacts
-          commit: ${{ github.sha }}
-          skip_unpack: true
-
-      - name: Create Emscripten Package
-        run: |
-          mv ${{ github.workspace }}/artifacts/projectm-emscripten-latest.zip ${{ github.workspace }}/projectm-emscripten-${{ env.TAG }}.zip
-
-      - name: Download Artifacts From macOS Build
-        id: download-osx-artifact
-        uses: dawidd6/action-download-artifact@v6
-        with:
-          github_token: ${{secrets.GITHUB_TOKEN}}
-          workflow: build_osx.yml
-          workflow_conclusion: success
-          path: artifacts
-          commit: ${{ github.sha }}
-
-      - name: Create macOs Package
-        run: |
-          cd ${{ github.workspace }}/artifacts/projectm-osx-latest
-          tar -czvf projectm-osx-x64.tar.gz *
-          mv projectm-osx-x64.tar.gz ${{ github.workspace }}/projectm-osx-x64-${{ env.TAG }}.tar.gz
-
       - name: Download Artifacts From Windows Build
         id: download-windows-artifact
-        uses: dawidd6/action-download-artifact@v6
+        uses: actions/download-artifact@v4
         with:
-          github_token: ${{secrets.GITHUB_TOKEN}}
-          workflow: build_windows.yml
-          workflow_conclusion: success
           path: artifacts
-          commit: ${{ github.sha }}
-          skip_unpack: true
+          pattern: projectM-windows-*
+          merge-multiple: true
 
-      - name: Create Windows Package
+      - name: Generate SHA256 Checksums
+        shell: bash
         run: |
-          mv ${{ github.workspace }}/artifacts/projectm-windows-latest.zip ${{ github.workspace }}/projectm-windows-x64-${{ env.TAG }}.zip
+          cd ${{ github.workspace }}
+          if ls projectM-windows-*.zip 1> /dev/null 2>&1; then
+            sha256sum projectM-windows-*.zip > SHA256SUMS.txt
+            cat SHA256SUMS.txt
+          elif ls artifacts/projectM-windows-*.zip 1> /dev/null 2>&1; then
+            cp artifacts/projectM-windows-*.zip .
+            sha256sum projectM-windows-*.zip > SHA256SUMS.txt
+            cat SHA256SUMS.txt
+          fi
 
-      - name: Display Ready Packages
+      - name: Set Release Tag Env
+        shell: bash
+        run: echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Display Ready Release Artifacts
+        shell: bash
         run: |
           ls -la ${{ github.workspace }}
 
-      # - name: Build Changelog
-      #   id: github_release
-      #   uses: mikepenz/release-changelog-builder-action@v3
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           name: ${{ env.TAG }}
           tag_name: ${{ env.TAG }}
-          # body: |
-          #   ${{steps.github_release.outputs.changelog}}
-          draft: true
+          draft: false
           prerelease: false
-          fail_on_unmatched_files: true
+          fail_on_unmatched_files: false
           files: |
-            projectm-linux-x64-${{ env.TAG }}.tar.gz
-            projectm-emscripten-${{ env.TAG }}.zip
-            projectm-osx-x64-${{ env.TAG }}.tar.gz
-            projectm-windows-x64-${{ env.TAG }}.zip
-            
+            ${{ github.workspace }}/projectM-windows-x86.zip
+            ${{ github.workspace }}/projectM-windows-x64.zip
+            ${{ github.workspace }}/SHA256SUMS.txt
+            ${{ github.workspace }}/projectm-*.tar.gz
+            ${{ github.workspace }}/projectm-*.zip

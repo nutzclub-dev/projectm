@@ -6,7 +6,7 @@ namespace Renderer {
 Framebuffer::Framebuffer()
 {
     m_framebufferIds.resize(1);
-    if (glGenFramebuffers != nullptr)
+    if (glad_glGenFramebuffers != nullptr)
     {
         glGenFramebuffers(1, m_framebufferIds.data());
     }
@@ -16,7 +16,7 @@ Framebuffer::Framebuffer()
 Framebuffer::Framebuffer(int framebufferCount)
 {
     m_framebufferIds.resize(framebufferCount);
-    if (glGenFramebuffers != nullptr)
+    if (glad_glGenFramebuffers != nullptr)
     {
         glGenFramebuffers(framebufferCount, m_framebufferIds.data());
     }
@@ -30,7 +30,7 @@ Framebuffer::~Framebuffer()
 {
     if (!m_framebufferIds.empty())
     {
-        if (glDeleteFramebuffers != nullptr)
+        if (glad_glDeleteFramebuffers != nullptr)
         {
             glDeleteFramebuffers(static_cast<int>(m_framebufferIds.size()), m_framebufferIds.data());
         }
@@ -52,7 +52,7 @@ void Framebuffer::Bind(int framebufferIndex)
         return;
     }
 
-    if (glBindFramebuffer != nullptr)
+    if (glad_glBindFramebuffer != nullptr)
     {
         glBindFramebuffer(GL_FRAMEBUFFER, m_framebufferIds.at(framebufferIndex));
     }
@@ -67,7 +67,7 @@ void Framebuffer::BindRead(int framebufferIndex)
         return;
     }
 
-    if (glBindFramebuffer != nullptr)
+    if (glad_glBindFramebuffer != nullptr)
     {
         glBindFramebuffer(GL_READ_FRAMEBUFFER, m_framebufferIds.at(framebufferIndex));
     }
@@ -82,7 +82,7 @@ void Framebuffer::BindDraw(int framebufferIndex)
         return;
     }
 
-    if (glBindFramebuffer != nullptr)
+    if (glad_glBindFramebuffer != nullptr)
     {
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_framebufferIds.at(framebufferIndex));
     }
@@ -92,7 +92,7 @@ void Framebuffer::BindDraw(int framebufferIndex)
 
 void Framebuffer::Unbind()
 {
-    if (glBindFramebuffer != nullptr)
+    if (glad_glBindFramebuffer != nullptr)
     {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
@@ -115,18 +115,21 @@ bool Framebuffer::SetSize(int width, int height)
         for (auto& texture : attachments.second)
         {
             // Detach old texture, resize (destroys old and creates new), reattach new.
-            if (glFramebufferTexture2D != nullptr)
+            if (glad_glFramebufferTexture2D != nullptr)
             {
                 glFramebufferTexture2D(GL_FRAMEBUFFER, texture.first, GL_TEXTURE_2D, 0, 0);
             }
             texture.second->SetSize(width, height);
-            if (glFramebufferTexture2D != nullptr)
+            if (glad_glFramebufferTexture2D != nullptr)
             {
                 glFramebufferTexture2D(GL_FRAMEBUFFER, texture.first, GL_TEXTURE_2D, texture.second->Texture()->TextureID(), 0);
             }
         }
     }
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    if (glad_glBindFramebuffer != nullptr)
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
 
     return true;
 }
@@ -205,14 +208,14 @@ void Framebuffer::SetAttachment(int framebufferIndex, int attachmentIndex, const
     }
     m_attachments.at(framebufferIndex)[textureType] = attachment;
 
-    if (glBindFramebuffer != nullptr)
+    if (glad_glBindFramebuffer != nullptr)
     {
         glBindFramebuffer(GL_FRAMEBUFFER, m_framebufferIds.at(framebufferIndex));
     }
 
     if (m_width > 0 && m_height > 0)
     {
-        if (glFramebufferTexture2D != nullptr)
+        if (glad_glFramebufferTexture2D != nullptr)
         {
             glFramebufferTexture2D(GL_FRAMEBUFFER, textureType, GL_TEXTURE_2D, attachment->Texture()->TextureID(), 0);
         }
@@ -220,7 +223,7 @@ void Framebuffer::SetAttachment(int framebufferIndex, int attachmentIndex, const
     UpdateDrawBuffers(framebufferIndex);
 
     // Reset to previous read/draw buffers
-    if (glBindFramebuffer != nullptr)
+    if (glad_glBindFramebuffer != nullptr)
     {
         glBindFramebuffer(GL_READ_FRAMEBUFFER, m_framebufferIds.at(m_readFramebuffer));
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_framebufferIds.at(m_drawFramebuffer));
@@ -246,13 +249,13 @@ void Framebuffer::CreateColorAttachment(int framebufferIndex, int attachmentInde
     Bind(framebufferIndex);
     if (m_width > 0 && m_height > 0)
     {
-        if (glFramebufferTexture2D != nullptr)
+        if (glad_glFramebufferTexture2D != nullptr)
         {
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachmentIndex, GL_TEXTURE_2D, texture->TextureID(), 0);
         }
     }
     UpdateDrawBuffers(framebufferIndex);
-    if (glBindFramebuffer != nullptr)
+    if (glad_glBindFramebuffer != nullptr)
     {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
@@ -293,13 +296,13 @@ void Framebuffer::CreateDepthAttachment(int framebufferIndex)
     Bind(framebufferIndex);
     if (m_width > 0 && m_height > 0)
     {
-        if (glFramebufferTexture2D != nullptr)
+        if (glad_glFramebufferTexture2D != nullptr)
         {
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture->TextureID(), 0);
         }
     }
     UpdateDrawBuffers(framebufferIndex);
-    if (glBindFramebuffer != nullptr)
+    if (glad_glBindFramebuffer != nullptr)
     {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
@@ -324,13 +327,13 @@ void Framebuffer::CreateStencilAttachment(int framebufferIndex)
     Bind(framebufferIndex);
     if (m_width > 0 && m_height > 0)
     {
-        if (glFramebufferTexture2D != nullptr)
+        if (glad_glFramebufferTexture2D != nullptr)
         {
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, texture->TextureID(), 0);
         }
     }
     UpdateDrawBuffers(framebufferIndex);
-    if (glBindFramebuffer != nullptr)
+    if (glad_glBindFramebuffer != nullptr)
     {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
@@ -355,13 +358,13 @@ void Framebuffer::CreateDepthStencilAttachment(int framebufferIndex)
     Bind(framebufferIndex);
     if (m_width > 0 && m_height > 0)
     {
-        if (glFramebufferTexture2D != nullptr)
+        if (glad_glFramebufferTexture2D != nullptr)
         {
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, texture->TextureID(), 0);
         }
     }
     UpdateDrawBuffers(framebufferIndex);
-    if (glBindFramebuffer != nullptr)
+    if (glad_glBindFramebuffer != nullptr)
     {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
@@ -377,9 +380,15 @@ void Framebuffer::MaskDrawBuffer(int bufferIndex, bool masked)
     // Invert the flag, as "true" means the color channel *will* be written.
     auto glMasked = static_cast<GLboolean>(!masked);
 #ifdef USE_GLES
-    glColorMask(glMasked, glMasked, glMasked, glMasked);
+    if (glad_glColorMask != nullptr)
+    {
+        glColorMask(glMasked, glMasked, glMasked, glMasked);
+    }
 #else
-    glColorMaski(bufferIndex, glMasked, glMasked, glMasked, glMasked);
+    if (glad_glColorMaski != nullptr)
+    {
+        glColorMaski(bufferIndex, glMasked, glMasked, glMasked, glMasked);
+    }
 #endif
 }
 
@@ -438,7 +447,7 @@ void Framebuffer::UpdateDrawBuffers(int framebufferIndex)
         buffers.push_back(GL_DEPTH_STENCIL_ATTACHMENT);
     }
 
-    if (glDrawBuffers != nullptr)
+    if (glad_glDrawBuffers != nullptr)
     {
         glDrawBuffers(static_cast<GLsizei>(buffers.size()), buffers.data());
     }
@@ -451,12 +460,12 @@ void Framebuffer::RemoveAttachment(int framebufferIndex, GLenum attachmentType)
         return;
     }
 
-    if (glBindFramebuffer != nullptr)
+    if (glad_glBindFramebuffer != nullptr)
     {
         glBindFramebuffer(GL_FRAMEBUFFER, m_framebufferIds.at(framebufferIndex));
     }
 
-    if (glFramebufferTexture2D != nullptr)
+    if (glad_glFramebufferTexture2D != nullptr)
     {
         glFramebufferTexture2D(GL_FRAMEBUFFER, attachmentType, GL_TEXTURE_2D, 0, 0);
     }
@@ -465,7 +474,7 @@ void Framebuffer::RemoveAttachment(int framebufferIndex, GLenum attachmentType)
     m_attachments.at(framebufferIndex).erase(attachmentType);
 
     // Reset to previous read/draw buffers
-    if (glBindFramebuffer != nullptr)
+    if (glad_glBindFramebuffer != nullptr)
     {
         glBindFramebuffer(GL_READ_FRAMEBUFFER, m_framebufferIds.at(m_readFramebuffer));
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_framebufferIds.at(m_drawFramebuffer));

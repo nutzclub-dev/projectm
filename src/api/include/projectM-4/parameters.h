@@ -394,6 +394,38 @@ PROJECTM_EXPORT void projectm_set_preset_start_clean(projectm_handle instance, b
  */
 PROJECTM_EXPORT bool projectm_get_preset_start_clean(projectm_handle instance);
 
+/**
+ * @brief Enables or disables subtle fallback audio reactivity for non-audio-reactive presets.
+ * @param instance The projectM instance handle.
+ * @param enabled True to enable fallback audio reactivity. Default: true
+ * @since 4.2.0
+ */
+PROJECTM_EXPORT void projectm_set_fallback_audio_reactivity_enabled(projectm_handle instance, bool enabled);
+
+/**
+ * @brief Returns whether fallback audio reactivity is enabled.
+ * @param instance The projectM instance handle.
+ * @return True if fallback audio reactivity is enabled.
+ * @since 4.2.0
+ */
+PROJECTM_EXPORT bool projectm_get_fallback_audio_reactivity_enabled(projectm_handle instance);
+
+/**
+ * @brief Sets the strength modifier for fallback audio reactivity.
+ * @param instance The projectM instance handle.
+ * @param strength Strength modifier between 0.0 and 2.0. Default: 1.0
+ * @since 4.2.0
+ */
+PROJECTM_EXPORT void projectm_set_fallback_audio_reactivity_strength(projectm_handle instance, float strength);
+
+/**
+ * @brief Returns the fallback audio reactivity strength modifier.
+ * @param instance The projectM instance handle.
+ * @return Strength modifier float value.
+ * @since 4.2.0
+ */
+PROJECTM_EXPORT float projectm_get_fallback_audio_reactivity_strength(projectm_handle instance);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif

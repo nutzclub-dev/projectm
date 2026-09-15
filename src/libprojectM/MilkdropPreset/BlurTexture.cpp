@@ -16,6 +16,7 @@ namespace MilkdropPreset {
 
 BlurTexture::BlurTexture()
     : m_blurMesh(Renderer::VertexBufferUsage::StaticDraw, false, true)
+    , m_blurSampler(std::make_shared<Renderer::Sampler>(GL_CLAMP_TO_EDGE, GL_LINEAR))
 {
     m_blurFramebuffer.CreateColorAttachment(0, 0);
 
@@ -31,6 +32,8 @@ BlurTexture::BlurTexture()
                           {1.0, 0.0},
                           {0.0, 1.0},
                           {1.0, 1.0}});
+
+    m_blurMesh.Update();
 
     // Initialize with empty textures.
     for (size_t i = 0; i < m_blurTextures.size(); i++)
