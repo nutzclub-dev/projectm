@@ -9,7 +9,6 @@
 #include <projectM-4/parameters.h>
 
 #include <chrono>
-#include <filesystem>
 #include <iostream>
 #include <vector>
 #include <string>
@@ -18,8 +17,6 @@
 #include <numeric>
 #include <iomanip>
 #include <cmath>
-
-namespace fs = std::filesystem;
 
 static bool IsParserAudioReactive(libprojectM::MilkdropPreset::PresetFileParser& parser) {
     int waveMode = parser.GetInt("nWaveMode", 0);
