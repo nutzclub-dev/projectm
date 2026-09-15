@@ -83,7 +83,10 @@ static bool IsParserAudioReactive(libprojectM::MilkdropPreset::PresetFileParser&
     return false;
 }
 
-int main([[maybe_unused]] int argc, [[maybe_unused]] char** argv) {
+int main(int argc, char** argv) {
+    (void)argc;
+    (void)argv;
+
     std::cout << "[projectM-benchmark] Running audio reactivity and fallback layer tests..." << std::endl;
 
     // Test 1: Non-audio-reactive preset detection
