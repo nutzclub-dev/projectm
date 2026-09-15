@@ -204,6 +204,7 @@ target_include_directories(projectM-benchmark
         "${PROJECTM_SOURCE_DIR}/src/api/include"
         "${PROJECTM_SOURCE_DIR}/src/libprojectM"
         "${PROJECTM_SOURCE_DIR}/vendor/hlslparser/src"
+        "${PROJECTM_SOURCE_DIR}/vendor/projectm-eval/projectm-eval/api"
         )
 
 target_link_libraries(projectM-benchmark

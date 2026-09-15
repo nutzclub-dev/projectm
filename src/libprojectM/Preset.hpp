@@ -70,6 +70,14 @@ public:
         return m_filename;
     }
 
+    /**
+     * @brief Returns whether the preset is audio-reactive.
+     */
+    virtual bool IsAudioReactive() const
+    {
+        return true;
+    }
+
 private:
     std::string m_filename;
 };

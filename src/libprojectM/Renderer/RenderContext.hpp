@@ -36,6 +36,9 @@ public:
     float texelOffsetX{0.0f}; //!< Horizontal texel offset in the warp shader.
     float texelOffsetY{0.0f}; //!< Vertical texel offset in the warp shader.
 
+    bool fallbackAudioReactivityEnabled{true};  //!< Controls whether subtle fallback audio reactivity is active for non-audio-reactive presets.
+    float fallbackAudioReactivityStrength{1.0f}; //!< Strength factor for fallback audio reactivity (0.0 to 2.0).
+
     TextureManager* textureManager{nullptr}; //!< Holds all loaded textures for shader access.
     ShaderCache* shaderCache{nullptr}; //!< The shader chace of this projectM instance.
 };

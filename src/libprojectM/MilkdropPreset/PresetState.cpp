@@ -4,6 +4,7 @@
 #include "PresetFileParser.hpp"
 
 #include <Renderer/ShaderCache.hpp>
+#include <Utils.hpp>
 
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -158,6 +159,77 @@ void PresetState::Initialize(PresetFileParser& parsedFile)
     // Shader code:
     warpShader = parsedFile.GetCode("warp_");
     compositeShader = parsedFile.GetCode("comp_");
+}
+
+bool PresetState::IsAudioReactive(PresetFileParser* parser) const
+{
+    if (waveMode > 0 && waveAlpha > 0.001f)
+    {
+        return true;
+    }
+
+    if (parser != nullptr)
+    {
+        for (int i = 0; i < CustomWaveformCount; ++i)
+        {
+            if (parser->GetBool("wavecode_" + std::to_string(i) + "_enabled", false))
+            {
+                return true;
+            }
+        }
+    }
+
+    static const std::vector<std::string> audioVarNames = {
+        "bass", "mid", "treb", "bass_att", "mid_att", "treb_att", "vol", "vol_att"
+    };
+
+    auto containsAudioVar = [](const std::string& code) -> bool {
+        if (code.empty()) return false;
+        std::string lowerCode = Utils::ToLower(code);
+        for (const auto& var : audioVarNames) {
+            size_t pos = 0;
+            while ((pos = lowerCode.find(var, pos)) != std::string::npos) {
+                bool leftOk = (pos == 0) || (!isalnum(static_cast<unsigned char>(lowerCode[pos - 1])) && lowerCode[pos - 1] != '_');
+                bool rightOk = (pos + var.length() == lowerCode.length()) ||
+                               (!isalnum(static_cast<unsigned char>(lowerCode[pos + var.length()])) && lowerCode[pos + var.length()] != '_');
+                if (leftOk && rightOk) {
+                    return true;
+                }
+                pos += var.length();
+            }
+        }
+        return false;
+    };
+
+    if (containsAudioVar(perFrameInitCode) ||
+        containsAudioVar(perFrameCode) ||
+        containsAudioVar(perPixelCode) ||
+        containsAudioVar(warpShader) ||
+        containsAudioVar(compositeShader))
+    {
+        return true;
+    }
+
+    for (int i = 0; i < CustomWaveformCount; ++i)
+    {
+        if (containsAudioVar(customWaveInitCode[i]) ||
+            containsAudioVar(customWavePerFrameCode[i]) ||
+            containsAudioVar(customWavePerPointCode[i]))
+        {
+            return true;
+        }
+    }
+
+    for (int i = 0; i < CustomShapeCount; ++i)
+    {
+        if (containsAudioVar(customShapeInitCode[i]) ||
+            containsAudioVar(customShapePerFrameCode[i]))
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void PresetState::LoadShaders()

@@ -26,6 +26,7 @@
 #include "PresetFileParser.hpp"
 
 #include <Logging.hpp>
+#include <cmath>
 
 namespace libprojectM {
 namespace MilkdropPreset {
@@ -190,12 +191,55 @@ void MilkdropPreset::BindFramebuffer()
     }
 }
 
+bool MilkdropPreset::IsAudioReactive() const
+{
+    return m_state.IsAudioReactive();
+}
+
 void MilkdropPreset::PerFrameUpdate()
 {
     m_perFrameContext.LoadStateVariables(m_state);
     m_perPixelContext.LoadStateReadOnlyVariables(m_state, m_perFrameContext);
 
     m_perFrameContext.ExecutePerFrameCode();
+
+    if (!m_state.IsAudioReactive() && m_state.renderContext.fallbackAudioReactivityEnabled)
+    {
+        float strength = std::max(0.0f, std::min(2.0f, m_state.renderContext.fallbackAudioReactivityStrength));
+        if (strength > 0.0001f)
+        {
+            float rawBass = m_state.audioData.bassAtt;
+            float rawVol = m_state.audioData.volAtt;
+            m_fallbackAudioEnergy = m_fallbackAudioEnergy * 0.85f + (rawBass * 0.6f + rawVol * 0.4f) * 0.15f;
+
+            float pulse = std::max(0.0f, m_fallbackAudioEnergy - 1.0f) * 0.025f * strength;
+            pulse = std::min(0.03f, pulse);
+
+            *m_perFrameContext.zoom += pulse * 0.03f;
+            *m_perFrameContext.rot += (m_state.audioData.bass - 1.0f) * 0.0015f * strength;
+            *m_perFrameContext.decay = std::min(1.0, *m_perFrameContext.decay + pulse * 0.005f);
+        }
+    }
+
+    auto sanitize = [](double* ptr, double defaultVal) {
+        if (ptr && (std::isnan(*ptr) || std::isinf(*ptr))) {
+            *ptr = defaultVal;
+        }
+    };
+    sanitize(m_perFrameContext.zoom, 1.0);
+    sanitize(m_perFrameContext.zoomexp, 1.0);
+    sanitize(m_perFrameContext.rot, 0.0);
+    sanitize(m_perFrameContext.warp, 0.0);
+    sanitize(m_perFrameContext.cx, 0.5);
+    sanitize(m_perFrameContext.cy, 0.5);
+    sanitize(m_perFrameContext.dx, 0.0);
+    sanitize(m_perFrameContext.dy, 0.0);
+    sanitize(m_perFrameContext.sx, 1.0);
+    sanitize(m_perFrameContext.sy, 1.0);
+    sanitize(m_perFrameContext.decay, 0.98);
+    sanitize(m_perFrameContext.gamma, 1.0);
+    sanitize(m_perFrameContext.echo_zoom, 1.0);
+    sanitize(m_perFrameContext.echo_alpha, 0.0);
 
     m_perPixelContext.LoadPerFrameQVariables(m_state, m_perFrameContext);
 
